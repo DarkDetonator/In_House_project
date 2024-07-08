@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chatbot</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f0f0f0;
+      margin: 0;
+      padding: 0;
+    }
+    .chat-container {
+      width: 100%;
+      max-width: 600px;
+      margin: 50px auto;
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+      position: relative;
+    }
+    .chat-header {
+      background: #007bff;
+      color: white;
+      padding: 15px;
+      text-align: center;
+    }
+    .chat-messages {
+      height: 400px;
+      overflow-y: auto;
+      padding: 15px;
+    }
+    .chat-message {
+      margin-bottom: 10px;
+    }
+    .chat-message.user {
+      text-align: right;
+    }
+    .chat-message.bot {
+      text-align: left;
+    }
+    .chat-input {
+      display: flex;
+      border-top: 1px solid #ddd;
+    }
+    .chat-input input {
+      flex: 1;
+      padding: 15px;
+      border: none;
+      border-top: 1px solid #ddd;
+    }
+    .chat-input button {
+      padding: 15px;
+      background: #007bff;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    .chat-input button:hover {
+      background: #0056b3;
+    }
+  </style>
+</head>
+<body>
+  <div class="chat-container">
+    <div class="chat-header">
+      <h2>Chatbot</h2>
+    </div>
+    <div class="chat-messages" id="chat-messages">
+      <!-- Chat messages will appear here -->
+    </div>
+    <div class="chat-input">
+      <input type="text" id="user-input" placeholder="Type your message here..." />
+      <button onclick="sendMessage()">Send</button>
+    </div>
+  </div>
+
+  <script>
+    let isListening = false; // Flag to track if voice recognition is active
+    let recognition; // SpeechRecognition instance
+
+    function startListening() {
+      recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+      recognition.lang = 'en-US';
+      recognition.interimResults = false;
+      recognition.maxAlternatives = 1;
+
+      recognition.addEventListener('result', event => {
+        const transcript = Array.from(event.results)
+          .map(result => result[0])
+          .map(result => result.transcript)
+          .join('');
+        handleCommand(transcript.toLowerCase());
+      });
+
+      recognition.addEventListener('end', () => {
+        if (isListening) {
+          recognition.start(); // Restart recognition if still listening
+        }
+      });
+
+      recognition.start();
+    }
+
+    function handleCommand(command) {
+      const cleanedCommand = command.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g,"").trim(); // Remove trailing punctuation and trim whitespace
+      const chatMessages = document.getElementById('chat-messages');
+
+      appendMessage(cleanedCommand, 'user');
+
+      fetch('/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ word: cleanedCommand }),
+      })
+      .then(response => response.json())
+      .then(data => {
+        appendMessage(data.response, 'bot');
+        speak(data.response);
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        appendMessage('Sorry, something went wrong.', 'bot');
+        speak('Sorry, something went wrong.');
+      });
+    }
+
+    function appendMessage(message, sender) {
+      const chatMessages = document.getElementById('chat-messages');
+      const messageElement = document.createElement('div');
+      messageElement.classList.add('chat-message', sender);
+      messageElement.textContent = message;
+      chatMessages.appendChild(messageElement);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    function speak(message) {
+      const speech = new SpeechSynthesisUtterance(message);
+      speechSynthesis.speak(speech);
+    }
+
+    // Send message when user clicks send button
+    function sendMessage() {
+      const inputField = document.getElementById('user-input');
+      const userMessage = inputField.value;
+      if (userMessage.trim() === '') return;
+
+      appendMessage(userMessage, 'user');
+      inputField.value = '';
+
+      const cleanedMessage = userMessage.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g,"").trim(); // Remove trailing punctuation and trim whitespace
+
+      fetch('/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ word: cleanedMessage }),
+      })
+      .then(response => response.json())
+      .then(data => {
+        appendMessage(data.response, 'bot');
+        speak(data.response);
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        appendMessage('Sorry, something went wrong.', 'bot');
+        speak('Sorry, something went wrong.');
+      });
+    }
+
+    // Trigger initial greeting and start listening
+    window.addEventListener('load', () => {
+      speak('Welcome! How can I assist you today?');
+      isListening = true;
+      startListening();
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Module</title>
+  <style>
+    .module {
+      display: block;
+    }
+    .button {
+      margin-top: 20px;
+    }
+    .seek-bar {
+      width: 100%;
+      margin-top: 10px;
+    }
+    .completed {
+      display: none;
+      color: green;
+      font-weight: bold;
+    }
+    .completed-module {
+      display: inline-block;
+      margin-left: 10px;
+      color: green;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h1>Modules</h1>
+
+  <div id="module1" class="module">
+    <h2>Module 1 <span id="module1Status"></span></h2>
+    <audio id="audioPlayer">
+      <source src="static/audio/TheLion,TheMouseandTheSleepyBearBedtimeStoriesforKidsAnimatedFairyTales.mp3" type="audio/mpeg">
+      Your browser does not support the audio element.
+    </audio>
+    <input type="range" id="seekBar" class="seek-bar" value="0" max="100">
+    <div>
+      <button onclick="controlAudio('start')">Start</button>
+      <button onclick="controlAudio('pause')">Pause</button>
+      <button onclick="startQuizManually()">Start Quiz</button>
+      <button onclick="completeModuleManually()">Chapter Completed</button>
+      <button onclick="refreshPage()">Refresh</button>
+    </div>
+  </div>
+
+  <div id="completed" class="completed">
+    <p>Chapter Completed!</p>
+  </div>
+
+  <script>
+    const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+    recognition.interimResults = false;
+    recognition.lang = 'en-US';
+
+    recognition.addEventListener('result', event => {
+      const transcript = Array.from(event.results)
+        .map(result => result[0])
+        .map(result => result.transcript)
+        .join('');
+      handleCommand(transcript.toLowerCase().trim());
+    });
+
+    recognition.addEventListener('end', recognition.start);
+    recognition.start();
+
+    function speak(text) {
+      const utterance = new SpeechSynthesisUtterance(text);
+      speechSynthesis.speak(utterance);
+    }
+
+    function controlAudio(command) {
+      const audio = document.getElementById('audioPlayer');
+      const seekBar = document.getElementById('seekBar');
+      switch (command) {
+        case 'start':
+          audio.play();
+          break;
+        case 'pause':
+          audio.pause();
+          break;
+        default:
+          break;
+      }
+
+      audio.addEventListener('timeupdate', () => {
+        seekBar.value = (audio.currentTime / audio.duration) * 100;
+      });
+
+      seekBar.addEventListener('input', () => {
+        audio.currentTime = (seekBar.value / 100) * audio.duration;
+      });
+    }
+
+    function startQuizManually() {
+      window.location.href = '/quiz'; // Navigate to the quiz page
+    }
+
+    function completeModuleManually() {
+      document.getElementById('module1Status').textContent = '✔'; // Mark module 1 as completed
+      document.getElementById('completed').style.display = 'block';
+      speak('Module 1 completed.');
+    }
+
+    function refreshPage() {
+      location.reload();
+    }
+
+    function handleCommand(command) {
+      console.log(`Received command: ${command}`);
+      fetch('/command', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ command: command, page: 'modules' }),
+      }).then(response => response.json()).then(result => {
+        console.log(result);
+        if (result.action === 'audioControl') {
+          controlAudio(result.command);
+        } else if (result.action === 'navigate') {
+          window.location.href = result.url;
+        } else if (result.action === 'response') {
+          speak(result.message); // Speak the response message instead of showing an alert
+        } else if (result.action === 'refresh') {
+          refreshPage();
+        }
+      });
+    }
+
+    document.getElementById('audioPlayer').addEventListener('ended', () => {
+      fetch('/command', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ command: 'audio ended' }),
+      }).then(response => response.json()).then(result => {
+        console.log(result);
+        if (result.action === 'navigate') {
+          window.location.href = result.url;
+        }
+      });
+    });
+
+    window.addEventListener('load', () => {
+      speak('You are on the module page. Click anywhere on the page and say start or pause to control the audio.');
+    });
+  </script>
+</body>
+</html>

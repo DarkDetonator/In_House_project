@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quiz</title>
+  <style>
+    .quiz {
+      display: block;
+    }
+    #options li {
+      cursor: pointer;
+      margin: 5px 0;
+      padding: 10px;
+      border: 1px solid #ccc;
+    }
+  </style>
+</head>
+<body>
+  <h1>Quiz</h1>
+  <div id="quizContent">
+    <p id="question">Question will appear here</p>
+    <ul id="options"></ul>
+  </div>
+  <p id="quiz-result"></p>
+  <button id="start-quiz">Start Quiz</button>
+
+  <script>
+    const correctSound = new Audio('static/audio/correct.mp3');
+    const wrongSound = new Audio('static/audio/wrong.mp3');
+
+    function speak(text) {
+      const utterance = new SpeechSynthesisUtterance(text);
+      speechSynthesis.speak(utterance);
+    }
+
+    async function fetchNextQuestion() {
+      const response = await fetch('/command', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ command: 'next', page: 'quiz' }),
+      });
+      const result = await response.json();
+      console.log(result);
+      if (result.action === 'quizQuestion') {
+        askQuestion(result.question, result.options);
+      } else if (result.action === 'quizCompleted') {
+        speak(result.scoreMessage);
+        document.getElementById('quiz-result').textContent = result.scoreMessage;
+        setTimeout(() => {
+          window.location.href = '/modules';
+        }, 3000);
+      }
+    }
+
+    function askQuestion(question, options) {
+      document.getElementById('question').textContent = question;
+      const optionsList = document.getElementById('options');
+      optionsList.innerHTML = '';
+      options.split(', ').forEach(option => {
+        const li = document.createElement('li');
+        li.textContent = option;
+        li.addEventListener('click', () => handleCommand(option));
+        optionsList.appendChild(li);
+      });
+      speak(`${question}. Your options are: ${options}`);
+    }
+
+    function playFeedback(correct) {
+      if (correct) {
+        correctSound.play();
+      } else {
+        wrongSound.play();
+      }
+    }
+
+    const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+    recognition.interimResults = false;
+    recognition.lang = 'en-US';
+
+    recognition.addEventListener('result', event => {
+      const transcript = Array.from(event.results)
+        .map(result => result[0])
+        .map(result => result.transcript)
+        .join('');
+      handleCommand(transcript.toLowerCase().trim());
+    });
+
+    recognition.addEventListener('end', recognition.start);
+    recognition.start();
+
+    function handleCommand(command) {
+      console.log(`Received command: ${command}`);
+      fetch('/command', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ command: command, page: 'quiz' }),
+      }).then(response => response.json()).then(result => {
+        console.log(result);
+        if (result.action === 'quizFeedback') {
+          playFeedback(result.correct);
+          if (result.moduleCompleted) {
+            speak('Quiz completed. Redirecting to modules page.');
+            setTimeout(() => {
+              window.location.href = '/modules';
+            }, 3000);
+          } else {
+            fetchNextQuestion();
+          }
+        } else if (result.action === 'response') {
+          speak(result.message);
+        }
+      });
+    }
+
+    document.getElementById('start-quiz').addEventListener('click', () => {
+      handleCommand('start quiz');
+    });
+
+    window.addEventListener('load', () => {
+      speak('Welcome to the quiz page. Click "Start Quiz" to begin.');
+    });
+  </script>
+</body>
+</html>
