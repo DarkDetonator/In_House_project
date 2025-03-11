@@ -1,31 +1,94 @@
-<h1>E-Learning Platform for Visually Disabled Users</h1>
-
-<h2>Overview</h2>
-This is a web-based e-learning platform designed specifically for visually impaired users, featuring voice-based navigation, interactive modules, and a chatbot. The platform uses basic HTML for the frontend and Flask for the backend.
-
-<h2>Features</h2>
-
-Login & Signup System: Secure authentication with MySQL database.
-
-Voice-based Navigation: Allows users to interact with the platform using audio commands.
-
-Chatbot with Dictionary Support: Uses NLP to provide word meanings and examples.
-
-Interactive Learning Modules: Supports quizzes and text-to-speech functionality for learning.
-
-Multi-version Support: Users can access either a visual or cognitively optimized version.
 
 
-<h2>Technologies Used</h2>
+---
 
-Frontend: Basic HTML
+# **E-Learning Platform for Visually Impaired Users**  
 
-Backend: Flask (Python)
+## **Overview**  
+This is a web-based **e-learning platform** specifically designed for **visually impaired users**. The platform features **voice-based navigation**, **interactive learning modules**, and a **chatbot** that provides **word meanings and examples**. Users can interact using voice commands to navigate through the platform and receive audio feedback, making learning accessible and engaging.  
 
-Database: MySQL
+---
 
-NLP: NLTK (for chatbot dictionary)
+## **Features**  
 
-Text-to-Speech: pyttsx3
+### 1️ **User Authentication**  
+- Secure **login and signup system** using **MySQL** database.  
+- Uses **Flask sessions** for authentication.  
 
-Authentication: Flask sessions
+![Screenshot 2025-03-11 164652](https://github.com/user-attachments/assets/129ab797-2f52-452a-b2b1-1aa35e024d80)
+
+
+---
+
+### 2️ **Voice-Based Navigation**  
+- Users interact with the platform using **voice commands** instead of traditional inputs.  
+- The system provides **audio feedback**, allowing visually impaired users to navigate different sections.  
+- Supports multiple operations, including:  
+  - Moving between **learning modules**  
+  - Accessing **quizzes**  
+  - Retrieving **lesson content**  
+  - Controlling playback speed and volume  
+
+![Screenshot 2025-03-11 164722](https://github.com/user-attachments/assets/097a01b8-354e-4977-8fb6-8d6f3476ba4d)
+
+
+---
+
+### 3️ **Chatbot with Dictionary Support**  
+- Users can **speak the name of a word**, and the chatbot provides:  
+  - **The meaning** of the word  
+  - **Examples** of its usage  
+  - **Narrated response** via text-to-speech (TTS)  
+- Built using **Natural Language Processing (NLP)** with **NLTK**.  
+
+![Screenshot 2025-03-11 164804](https://github.com/user-attachments/assets/df8ecf1c-a9a8-4f3a-b396-1dde2191b5d1)
+
+
+---
+
+### 4️ **Interactive Learning Modules**  
+- Includes **quizzes**, **text-to-speech reading**, and **audio-based instructions**.  
+- Users receive **audio feedback** on correct and incorrect answers.  
+
+📌 *[Insert an image of a quiz question with text-to-speech enabled here]*  
+
+---
+
+
+
+## **Technologies Used**  
+| Component          | Technology Used |
+|-------------------|----------------|
+| **Frontend**      | HTML (Basic UI) |
+| **Backend**       | Flask (Python)  |
+| **Database**      | MySQL |
+| **NLP**           | NLTK (for chatbot dictionary) |
+| **Text-to-Speech** | pyttsx3 |
+| **Authentication** | Flask sessions |
+
+---
+
+## **Installation & Setup**  
+
+### **1️⃣ Install Dependencies**  
+```bash
+pip install flask mysql-connector-python nltk pyttsx3
+```
+
+### **2️⃣ Run the Application**  
+```bash
+python app.py
+```
+
+
+## **Future Enhancements**  
+**Multilingual support** for chatbot and navigation.  
+**Integration with Braille-compatible hardware**.  
+**Machine Learning for smarter chatbot responses**.  
+
+---
+
+## **Contact & Contributions**  
+For feedback, improvements, or contributions, feel free to reach out!  
+
+---
