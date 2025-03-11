@@ -50,7 +50,7 @@ This is a web-based **e-learning platform** specifically designed for **visually
 - Includes **quizzes**, **text-to-speech reading**, and **audio-based instructions**.  
 - Users receive **audio feedback** on correct and incorrect answers.  
 
-📌 *[Insert an image of a quiz question with text-to-speech enabled here]*  
+
 
 ---
 
@@ -70,12 +70,12 @@ This is a web-based **e-learning platform** specifically designed for **visually
 
 ## **Installation & Setup**  
 
-### **1️⃣ Install Dependencies**  
+### **1️ Install Dependencies**  
 ```bash
 pip install flask mysql-connector-python nltk pyttsx3
 ```
 
-### **2️⃣ Run the Application**  
+### **2️ Run the Application**  
 ```bash
 python app.py
 ```
